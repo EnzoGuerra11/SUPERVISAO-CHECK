@@ -1,0 +1,3068 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SUPERVISOR</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --panel: rgba(255, 255, 255, .86);
+      --text: #1d1d1f;
+      --muted: #6e6e73;
+      --line: rgba(60, 60, 67, .14);
+      --brand: #3f3a8f;
+      --brand-2: #6e5cf7;
+      --topic: #352f86;
+      --success: #138a45;
+      --attention: #b77905;
+      --critical: #c53030;
+      --neutral: #6b7280;
+      --success-bg: #e7f6ee;
+      --attention-bg: #fff4d6;
+      --critical-bg: #fde8e8;
+      --neutral-bg: #eceff3;
+      --shadow: 0 18px 42px rgba(29, 29, 31, .10);
+      --soft-shadow: 0 8px 22px rgba(29, 29, 31, .07);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 18% -10%, rgba(110, 92, 247, .12), transparent 28%),
+        radial-gradient(circle at 95% 18%, rgba(0, 122, 255, .10), transparent 24%),
+        var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      transition: transform .22s var(--ease), box-shadow .22s var(--ease), background .22s var(--ease), border-color .22s var(--ease), color .22s var(--ease);
+    }
+
+    button:active {
+      transform: scale(.985);
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 112px;
+      padding: 18px clamp(16px, 3vw, 36px);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(124, 58, 237, .34), transparent 27%),
+        radial-gradient(circle at 82% 12%, rgba(0, 122, 255, .28), transparent 26%),
+        linear-gradient(135deg, #12131f 0%, #24173f 54%, #111827 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, .16);
+      box-shadow: 0 18px 48px rgba(12, 13, 28, .28);
+    }
+
+    .app-header::before {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 48px;
+      opacity: .24;
+      background:
+        linear-gradient(to top, rgba(0, 0, 0, .7), transparent),
+        repeating-linear-gradient(90deg, transparent 0 24px, rgba(255,255,255,.22) 24px 27px, transparent 27px 42px);
+      clip-path: polygon(0 44%, 5% 44%, 5% 22%, 10% 22%, 10% 56%, 16% 56%, 16% 18%, 23% 18%, 23% 48%, 30% 48%, 30% 28%, 38% 28%, 38% 54%, 48% 54%, 48% 18%, 56% 18%, 56% 42%, 66% 42%, 66% 24%, 74% 24%, 74% 55%, 84% 55%, 84% 30%, 92% 30%, 92% 48%, 100% 48%, 100% 100%, 0 100%);
+    }
+
+    .app-header::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .18;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.9) 0 1px, transparent 1.2px),
+        linear-gradient(transparent 0 92%, rgba(255,255,255,.08) 92% 100%);
+      background-size: 82px 58px, 100% 8px;
+    }
+
+    .brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(34px, 7vw, 70px);
+      line-height: 1.1;
+      letter-spacing: 1.5px;
+      color: #fff;
+      text-shadow:
+        0 1px 0 #d6f9ff,
+        0 2px 0 #7c3aed,
+        0 0 16px rgba(147, 197, 253, .72),
+        0 0 30px rgba(168, 85, 247, .50);
+      text-transform: uppercase;
+    }
+
+    .brand span {
+      color: #d8d4ff;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .version-tag {
+      width: fit-content;
+      margin-top: 5px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .14);
+      color: #eaf7ff;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .header-actions {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .icon-button, .primary-button, .secondary-button, .danger-button {
+      min-height: 46px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      font-weight: 750;
+      box-shadow: 0 8px 20px rgba(29, 29, 31, .06);
+    }
+
+    .icon-button {
+      width: 48px;
+      background: #f1f4f7;
+      color: var(--text);
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .primary-button {
+      padding: 0 18px;
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .primary-button:hover {
+      background: var(--brand-2);
+      box-shadow: 0 12px 28px rgba(63, 58, 143, .24);
+    }
+
+    .secondary-button {
+      padding: 0 14px;
+      background: rgba(255, 255, 255, .78);
+      color: var(--brand);
+      border-color: rgba(63, 58, 143, .14);
+    }
+
+    .danger-button {
+      padding: 0 14px;
+      background: #fff1f1;
+      color: var(--critical);
+      border-color: #f4c4c4;
+    }
+
+    .network-menu {
+      position: relative;
+    }
+
+    .menu-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      display: none;
+      width: 250px;
+      padding: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .menu-panel.open {
+      display: grid;
+      gap: 6px;
+    }
+
+    .menu-panel button {
+      width: 100%;
+      min-height: 46px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      text-align: left;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .menu-panel button.active,
+    .menu-panel button:hover {
+      background: #e8f1f2;
+      color: var(--brand);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 18px;
+      width: min(1480px, 100%);
+      margin: 0 auto;
+      padding: 18px clamp(12px, 2vw, 28px) 36px;
+    }
+
+    .app-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      width: min(720px, calc(100% - 24px));
+      margin: 14px auto 0;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .72);
+      box-shadow: var(--soft-shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .app-tab {
+      min-height: 46px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      background: rgba(242, 242, 247, .9);
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .app-tab.active {
+      background: var(--brand);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(63, 58, 143, .22);
+    }
+
+    .app-view[hidden] {
+      display: none;
+    }
+
+    .runtime-warning {
+      display: block;
+      width: min(1480px, calc(100% - 24px));
+      margin: 14px auto 0;
+      padding: 12px 14px;
+      border: 1px solid #f3c7c7;
+      border-radius: 8px;
+      background: #fff1f1;
+      color: #9b1c1c;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    body.app-ready .runtime-warning {
+      display: none;
+    }
+
+    .history-layout {
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr);
+      gap: 18px;
+      width: min(1480px, 100%);
+      margin: 0 auto;
+      padding: 18px clamp(12px, 2vw, 28px) 36px;
+    }
+
+    .history-panel {
+      padding: 16px;
+    }
+
+    .history-panel h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .store-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .store-list button {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      text-align: left;
+      font-weight: 900;
+    }
+
+    .store-list button.active {
+      border-color: var(--brand);
+      background: #eef4f4;
+      color: var(--brand);
+    }
+
+    .store-list span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .pdf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .pdf-preview {
+      display: grid;
+      gap: 10px;
+      min-height: 300px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(#ffffff, #ffffff) padding-box, linear-gradient(135deg, #195b63, #dfe4ea) border-box;
+      box-shadow: 0 10px 22px rgba(31, 41, 51, .07);
+      text-align: left;
+      color: var(--text);
+    }
+
+    .pdf-preview:hover {
+      border-color: var(--brand);
+      transform: translateY(-1px);
+    }
+
+    .pdf-preview:focus-visible {
+      outline: 3px solid rgba(15, 123, 108, .22);
+      border-color: var(--brand);
+    }
+
+    .pdf-sheet {
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      min-height: 210px;
+      padding: 14px;
+      border: 1px solid #dfe5ec;
+      border-radius: 6px;
+      background: #fbfcfd;
+    }
+
+    .pdf-sheet b {
+      color: var(--brand);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .pdf-sheet strong {
+      font-size: 19px;
+      line-height: 1.15;
+    }
+
+    .pdf-sheet span,
+    .pdf-sheet p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .pdf-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .pdf-metrics i {
+      display: block;
+      padding: 7px 6px;
+      border-radius: 6px;
+      background: #eef1f5;
+      color: #334155;
+      font-style: normal;
+      font-size: 11px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .pdf-open-hint {
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 900;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .main {
+      display: grid;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--soft-shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .identity {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      padding: 18px;
+      background: rgba(255, 255, 255, .72);
+      border-color: rgba(60, 60, 67, .12);
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    label {
+      color: #5f5f67;
+      font-size: 13px;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    select, input[type="text"], input[type="date"], textarea {
+      width: 100%;
+      border: 1px solid rgba(60, 60, 67, .16);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .92);
+      color: var(--text);
+      outline: 0;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+      transition: border-color .22s var(--ease), box-shadow .22s var(--ease), background .22s var(--ease);
+    }
+
+    select, input[type="text"], input[type="date"] {
+      min-height: 48px;
+      padding: 0 12px;
+    }
+
+    textarea {
+      min-height: 84px;
+      padding: 12px 14px;
+      resize: vertical;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--brand-2);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(110, 92, 247, .16);
+    }
+
+    .section-tabs {
+      position: sticky;
+      top: 73px;
+      z-index: 12;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 8px;
+      padding: 10px;
+      background: rgba(255, 255, 255, .72);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--soft-shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .section-tabs button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 6px 8px;
+      border-radius: 16px;
+      background: rgba(242, 242, 247, .82);
+      border: 1px solid var(--line);
+      color: var(--brand);
+      text-align: center;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background .24s var(--ease), border-color .24s var(--ease), color .24s var(--ease), box-shadow .24s var(--ease), transform .24s var(--ease);
+      will-change: transform;
+    }
+
+    .section-tabs button:hover {
+      transform: translateY(-1px);
+    }
+
+    .section-tabs button.active {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      border-color: var(--brand);
+      color: #fff;
+      box-shadow: 0 12px 26px rgba(63, 58, 143, .22);
+    }
+
+    @keyframes sectionReveal {
+      from {
+        opacity: 0;
+        transform: translateY(-10px) scale(.985);
+        clip-path: inset(0 0 100% 0 round 24px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        clip-path: inset(0 0 0 0 round 24px);
+      }
+    }
+
+    .check-section,
+    .seller-panel {
+      scroll-margin-top: 144px;
+      overflow: hidden;
+      animation: sectionReveal .36s var(--ease) both;
+      transform-origin: top center;
+      transition: box-shadow .28s var(--ease), transform .28s var(--ease);
+    }
+
+    .check-section:not(.collapsed),
+    .seller-panel:not(.collapsed) {
+      box-shadow: var(--shadow);
+    }
+
+    .check-section .points,
+    .seller-panel .seller-list {
+      max-height: 9000px;
+      opacity: 1;
+      transform: translateY(0);
+      overflow: hidden;
+      transition: max-height .44s var(--ease), opacity .32s var(--ease), transform .32s var(--ease), padding .32s var(--ease);
+    }
+
+    .check-section.collapsed .points,
+    .seller-panel.collapsed .seller-list {
+      max-height: 0;
+      opacity: 0;
+      transform: translateY(-8px);
+      padding-top: 0;
+      padding-bottom: 0;
+      pointer-events: none;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .50);
+    }
+
+    .section-title {
+      min-width: 0;
+    }
+
+    .section-title h2 {
+      margin: 0 0 5px;
+      font-size: clamp(19px, 2.5vw, 25px);
+      letter-spacing: 0;
+      color: var(--topic);
+    }
+
+    .section-title p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .section-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .section-toggle {
+      min-width: 92px;
+    }
+
+    .points {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .point {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .84);
+      box-shadow: 0 6px 18px rgba(29, 29, 31, .045);
+    }
+
+    .point-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .point-title-wrap {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .point-title-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .point h3 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+      color: var(--topic);
+      min-width: 0;
+    }
+
+    .point-edit-button {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(63, 58, 143, .14);
+      background: rgba(255, 255, 255, .82);
+      color: var(--brand);
+      font-size: 17px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform .22s var(--ease), background .22s var(--ease), box-shadow .22s var(--ease);
+    }
+
+    .point-edit-button:hover,
+    .point.editing-title .point-edit-button {
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(63, 58, 143, .14);
+      transform: rotate(22deg);
+    }
+
+    .point-title-editor {
+      display: none;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .point.editing-title .point-title-editor {
+      display: grid;
+    }
+
+    .point-title-input {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(63, 58, 143, .14);
+      background: rgba(255, 255, 255, .72);
+      color: var(--topic);
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: 0;
+      outline: none;
+      transition: border-color .22s var(--ease), box-shadow .22s var(--ease), background .22s var(--ease);
+    }
+
+    .point-title-input:focus {
+      border-color: rgba(63, 58, 143, .42);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(63, 58, 143, .10);
+    }
+
+    .point-reset-title {
+      min-height: 42px;
+      padding: 0 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(63, 58, 143, .14);
+      background: rgba(242, 242, 247, .82);
+      color: var(--brand);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .point-hint {
+      margin: 0;
+      color: #697586;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .point-objective {
+      margin: 0;
+      color: #4d5b6b;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .point-objective strong {
+      color: var(--topic);
+    }
+
+    .status-pill {
+      flex-shrink: 0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(242, 242, 247, .95);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .status-pill.success { background: var(--success-bg); color: var(--success); }
+    .status-pill.attention { background: var(--attention-bg); color: var(--attention); }
+    .status-pill.critical { background: var(--critical-bg); color: var(--critical); }
+    .status-pill.na { background: var(--neutral-bg); color: var(--neutral); }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .status-button {
+      min-height: 54px;
+      padding: 6px 8px;
+      border: 1px solid transparent;
+      border-radius: 16px;
+      background: rgba(242, 242, 247, .92);
+      color: #334155;
+      font-weight: 850;
+    }
+
+    .status-button.success { background: var(--success-bg); color: var(--success); }
+    .status-button.attention { background: var(--attention-bg); color: var(--attention); }
+    .status-button.critical { background: var(--critical-bg); color: var(--critical); }
+    .status-button.na { background: var(--neutral-bg); color: var(--neutral); }
+
+    .status-button.selected {
+      border-color: currentColor;
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .9), 0 10px 24px rgba(29, 29, 31, .10);
+      transform: translateY(-1px);
+    }
+
+    .photo-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .photo-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .78);
+      border: 1px solid rgba(63, 58, 143, .16);
+      color: var(--brand);
+      font-weight: 800;
+      text-transform: none;
+    }
+
+    .photo-label input {
+      display: none;
+    }
+
+    .storage-warning {
+      display: none;
+      color: var(--critical);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .storage-warning.show {
+      display: block;
+    }
+
+    .thumbs {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+      gap: 10px;
+    }
+
+    .thumb {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(242, 242, 247, .92);
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #fff;
+    }
+
+    .thumb button {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(20, 30, 40, .82);
+      color: #fff;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .seller-panel {
+      scroll-margin-top: 144px;
+      overflow: hidden;
+    }
+
+    .seller-list {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .seller-empty {
+      margin: 0;
+      padding: 16px;
+      border: 1px dashed rgba(60, 60, 67, .22);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .74);
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .seller-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .84);
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(29, 29, 31, .045);
+    }
+
+    .seller-head {
+      width: 100%;
+      min-height: 62px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      border: 0;
+      background: rgba(255, 255, 255, .62);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .seller-head strong,
+    .seller-head span {
+      display: block;
+    }
+
+    .seller-head strong {
+      font-size: 17px;
+      color: var(--topic);
+    }
+
+    .seller-head span {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .seller-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .seller-summary-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      min-width: 0;
+      padding: 6px 8px;
+      border-radius: 12px;
+      background: rgba(242, 242, 247, .88);
+      color: #4b5563;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .seller-summary-item span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin: 0;
+    }
+
+    .seller-note {
+      flex-shrink: 0;
+      min-width: 34px;
+      margin: 0;
+      padding: 2px 6px;
+      border-radius: 999px;
+      text-align: center;
+      font-weight: 950;
+    }
+
+    .seller-average {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(242, 242, 247, .92);
+      color: var(--brand);
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .seller-body {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .seller-name-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .seller-steps {
+      display: grid;
+      gap: 10px;
+    }
+
+    .seller-step {
+      display: grid;
+      gap: 9px;
+      padding: 14px;
+      border: 1px solid rgba(60, 60, 67, .12);
+      border-radius: 18px;
+      background: rgba(248, 248, 251, .86);
+    }
+
+    .seller-step-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 900;
+      color: #263342;
+    }
+
+    .seller-grade {
+      color: var(--brand);
+      white-space: nowrap;
+    }
+
+    .grade-good {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .grade-warn {
+      background: var(--attention-bg);
+      color: var(--attention);
+    }
+
+    .grade-bad {
+      background: var(--critical-bg);
+      color: var(--critical);
+    }
+
+    .seller-grade.grade-good,
+    .seller-grade.grade-warn,
+    .seller-grade.grade-bad,
+    .seller-average.grade-good,
+    .seller-average.grade-warn,
+    .seller-average.grade-bad {
+      padding: 5px 8px;
+      border-radius: 999px;
+    }
+
+    .seller-slider-row {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) 42px;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .seller-slider-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--brand);
+      touch-action: none;
+    }
+
+    .seller-slider-row input[type="range"]::-webkit-slider-thumb {
+      cursor: grab;
+    }
+
+    .seller-card.collapsed .seller-body {
+      display: none;
+    }
+
+    .seller-error {
+      display: none;
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: var(--critical-bg);
+      color: var(--critical);
+      font-weight: 850;
+    }
+
+    .seller-error.show {
+      display: block;
+    }
+
+    .summary {
+      position: sticky;
+      top: 91px;
+      display: grid;
+      gap: 12px;
+      align-self: start;
+    }
+
+    .summary-card {
+      padding: 18px;
+      background: rgba(239, 248, 244, .82);
+      border-color: rgba(60, 60, 67, .10);
+    }
+
+    .summary-card h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .stat {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .76);
+      border: 1px solid var(--line);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .stat.success strong { color: var(--success); }
+    .stat.attention strong { color: var(--attention); }
+    .stat.critical strong { color: var(--critical); }
+    .stat.progress strong { color: var(--brand); }
+
+    .summary-actions {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .quick-saves {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+    }
+
+    .quick-saves-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .quick-saves h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .quick-saves-head button {
+      min-height: 44px;
+      padding: 0 10px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .quick-saves-subtitle {
+      margin: -4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .quick-saves-list {
+      display: grid;
+      gap: 12px;
+      max-height: 440px;
+      overflow: auto;
+    }
+
+    .quick-store-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .quick-store-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #eef4f4;
+      color: var(--brand);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .quick-store-title span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .quick-save {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .quick-save-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .quick-save strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .quick-save span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .quick-save-desc {
+      margin: 0;
+      color: #334155;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .quick-save-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+    }
+
+    .quick-save-actions button {
+      min-height: 44px;
+      padding: 0 10px;
+      border-radius: 7px;
+      font-size: 13px;
+    }
+
+    .quick-save-empty {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .section-mini {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+    }
+
+    .section-mini button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .76);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-weight: 800;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .section-mini b {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      min-height: 28px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: var(--critical-bg);
+      color: var(--critical);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+      }
+    }
+
+    .footer-note {
+      padding: 0 4px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1050px) {
+      .layout,
+      .history-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        position: static;
+        order: -1;
+      }
+
+      .summary .section-mini {
+        display: none;
+      }
+
+      .summary-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .store-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      .app-header {
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        padding-top: 2px;
+      }
+
+      .identity {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .section-tabs {
+        top: 73px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .status-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .section-head {
+        grid-template-columns: 1fr;
+      }
+
+      .section-actions {
+        justify-content: stretch;
+      }
+
+      .section-actions button {
+        flex: 1 1 190px;
+      }
+
+      .seller-name-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .brand span {
+        display: none;
+      }
+
+      .primary-button {
+        padding: 0 12px;
+      }
+
+      .identity,
+      .summary-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .app-tabs,
+      .store-list,
+      .pdf-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .seller-head,
+      .seller-step-title {
+        grid-template-columns: 1fr;
+      }
+
+      .seller-summary {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <h1>SUPERVISOR</h1>
+      <span>Vistoria operacional</span>
+      <small class="version-tag">Versão visual 03/09/2026</small>
+    </div>
+    <div class="header-actions">
+      <button class="secondary-button" id="generatePhotos" type="button">Só fotos</button>
+      <button class="primary-button" id="generateReport" type="button">Gerar relatório</button>
+    </div>
+  </header>
+
+  <nav class="app-tabs" aria-label="Área do aplicativo">
+    <button class="app-tab active" type="button" data-app-tab="checklist">Checklist</button>
+    <button class="app-tab" type="button" data-app-tab="history">Histórico PDF</button>
+  </nav>
+
+  <div class="runtime-warning" id="runtimeWarning">
+    O checklist não carregou os pontos porque este visualizador não executou o JavaScript. Abra este arquivo pelo Google Chrome ou use um link publicado no Vercel/GitHub Pages.
+  </div>
+
+  <div class="layout app-view" id="checklistView">
+    <main class="main">
+      <section class="panel identity" aria-label="Identificação da vistoria">
+        <div class="field">
+          <label for="store">Loja</label>
+          <select id="store">
+            <option>Mil Passos Aracati 1</option>
+            <option>Mague Cascavel</option>
+            <option>Mague Pacajus</option>
+            <option>Mague Horizonte</option>
+            <option>Mague Aracati</option>
+            <option>Mil Passos Russas</option>
+            <option>Mil Passos Horizonte</option>
+            <option>Mil Passos Pacajus 1</option>
+            <option>Mil Passos Aracati 2</option>
+            <option>Mil Passos Cascavel 1</option>
+            <option>Mil Passos Cascavel 2</option>
+            <option>Mil Passos Quixadá</option>
+            <option>Mil Passos Iguatu 1</option>
+            <option>Mague Crato</option>
+            <option>Mil Passos Crato 1</option>
+            <option>Mil Passos Juazeiro 1</option>
+            <option>Mil Passos Brejo 2</option>
+            <option>Mil Passos Pacajus 2</option>
+            <option>Mil Passos Iguatu 2</option>
+            <option>Mil Passos Barbalha</option>
+            <option>Mil Passos Beberibe</option>
+            <option>Mague Beberibe</option>
+            <option>Mil Passos Crato 2</option>
+            <option>Mil Passos Brejo Santo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="inspector">Responsável pela vistoria</label>
+          <input id="inspector" type="text" autocomplete="name" placeholder="Nome do responsável">
+        </div>
+        <div class="field">
+          <label for="date">Data</label>
+          <input id="date" type="date">
+        </div>
+      </section>
+
+      <nav class="section-tabs" id="sectionTabs" aria-label="Atalhos por seção"></nav>
+      <div id="sections"></div>
+    </main>
+
+    <aside class="summary" aria-label="Resumo da vistoria">
+      <section class="panel summary-card">
+        <h2>Resumo</h2>
+        <div class="stats">
+          <div class="stat critical"><strong id="criticalCount">0</strong><span>Críticos</span></div>
+          <div class="stat attention"><strong id="attentionCount">0</strong><span>Atenção</span></div>
+          <div class="stat success"><strong id="successCount">0</strong><span>Sucessos</span></div>
+          <div class="stat progress"><strong id="progressCount">0%</strong><span>Preenchido</span></div>
+        </div>
+        <div class="summary-actions">
+          <button class="secondary-button" id="saveChecklist" type="button">Salvar PDF no histórico</button>
+          <button class="secondary-button" id="generatePhotosSide" type="button">Só fotos</button>
+          <button class="primary-button" id="generateReportSide" type="button">Gerar relatório</button>
+          <button class="danger-button" id="clearAll" type="button">Limpar tudo</button>
+        </div>
+      </section>
+      <section class="panel section-mini" id="sectionMini"></section>
+      <p class="footer-note">As informações ficam salvas neste navegador. Fotos grandes podem atingir o limite de armazenamento local.</p>
+    </aside>
+  </div>
+
+  <div class="history-layout app-view" id="historyView" hidden>
+    <aside class="panel history-panel" aria-label="Lojas com checklists salvos">
+      <h2>Lojas</h2>
+      <div class="store-list" id="historyStores"></div>
+    </aside>
+    <main class="panel history-panel" aria-label="PDFs salvos da loja">
+      <div class="quick-saves-head">
+        <h2 id="historyTitle">Histórico PDF</h2>
+        <div class="history-actions">
+          <button class="secondary-button" id="downloadHistory" type="button">Baixar histórico</button>
+          <button class="danger-button" id="clearHistory" type="button">Limpar histórico</button>
+        </div>
+      </div>
+      <p class="quick-saves-subtitle">Clique em uma prévia para abrir o relatório e salvar/imprimir em PDF.</p>
+      <div class="pdf-grid" id="historyPdfs"></div>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "checklist-loja-v1";
+    const SAVED_KEY = "checklist-loja-salvos-v1";
+    const DB_NAME = "checklist-loja-db";
+    const DB_STORE = "dados";
+    const STATUS = [
+      { id: "success", label: "Sucesso" },
+      { id: "attention", label: "Atenção" },
+      { id: "critical", label: "Crítico" },
+      { id: "na", label: "Não se aplica" }
+    ];
+
+    const NETWORKS = {
+      milpassos: {
+        label: "Mil Passos · Calçados",
+        segment: "Calçados",
+        stores: [
+          "Mil Passos Aracati 1", "Mil Passos Russas", "Mil Passos Horizonte",
+          "Mil Passos Pacajus 1", "Mil Passos Aracati 2", "Mil Passos Cascavel 1",
+          "Mil Passos Cascavel 2", "Mil Passos Quixadá", "Mil Passos Iguatu 1",
+          "Mil Passos Crato 1", "Mil Passos Juazeiro 1", "Mil Passos Brejo 2",
+          "Mil Passos Pacajus 2", "Mil Passos Iguatu 2", "Mil Passos Barbalha",
+          "Mil Passos Beberibe", "Mil Passos Crato 2", "Mil Passos Brejo Santo"
+        ]
+      },
+      mague: {
+        label: "Mague · Roupas",
+        segment: "Roupas",
+        stores: [
+          "Mague Cascavel", "Mague Pacajus", "Mague Horizonte",
+          "Mague Aracati", "Mague Crato", "Mague Beberibe"
+        ]
+      }
+    };
+
+    const ALL_STORES = Object.values(NETWORKS).flatMap(network => network.stores);
+
+    function networkForStore(storeName) {
+      const entry = Object.entries(NETWORKS).find(([, network]) => network.stores.includes(storeName));
+      return entry ? entry[0] : "milpassos";
+    }
+
+    const SECTIONS = [
+      {
+        id: "estrutura",
+        title: "Estrutura da Loja",
+        points: [
+          { title: "Pintura das paredes" },
+          { title: "Teto", hint: "Manchas • avarias/buracos • estado da pintura" },
+          { title: "Portas", hint: "Funcionamento • ferrugem • limpeza • lubrificação" },
+          { title: "Frente externa da loja" },
+          { title: "Calçada" },
+          { title: "Toldo" },
+          { title: "Fachada" },
+          { title: "Banheiro" },
+          { title: "Iluminação", hint: "Spots • luzes brancas • nível de iluminação" },
+          { title: "Ar-condicionado", hint: "Limpeza • climatização • conservação" },
+          { title: "Retaguarda / Caixa", hint: "Estrutura • conservação • acabamento" },
+          { title: "Aparelhos tecnológicos", hint: "Impressoras • celulares • equipamentos do caixa • leitores de código de barras" }
+        ]
+      },
+      {
+        id: "vm",
+        title: "Exposição e VM",
+        points: [
+          { title: "Conservação da vitrine", hint: "Aço inox • espelhos • bandejas" },
+          { title: "Padrão de exposição da vitrine", hint: "Padrão • rupturas" },
+          { title: "Organização das araras de salão", hint: "Padrão • rupturas • setorização" },
+          { title: "Organização das pilhas de caixas", hint: "Setorização • qualidade" },
+          { title: "Organização dos equipamentos de solo", hint: "Conservação • qualidade • atratividade" },
+          { title: "Exposição de impacto na frente da loja" },
+          { title: "Conservação e padronização das etiquetas de preço" },
+          { title: "Slat wall - organização e exposição" },
+          { title: "Produtos corretamente precificados", hint: "Vitrine • araras • pilhas • equipamentos • slat wall" }
+        ]
+      },
+      {
+        id: "limpeza",
+        title: "Limpeza e Organização",
+        points: [
+          { title: "Limpeza da vitrine - vidros e prateleiras" },
+          { title: "Organização geral da loja" },
+          { title: "Limpeza do salão" },
+          { title: "Limpeza e organização da retaguarda / caixa" },
+          { title: "Limpeza do banheiro" },
+          { title: "Organização das áreas de circulação" }
+        ]
+      },
+      {
+        id: "postura",
+        title: "Postura da Equipe",
+        points: [
+          { title: "Proatividade da equipe", hint: "Equipe ativa • atenção à entrada de clientes • iniciativa nas tarefas" },
+          { title: "Fardamento", hint: "Padrão • uso correto • conservação" },
+          { title: "Apresentação pessoal", hint: "Higiene • limpeza • maquiagem • aparência" },
+          { title: "Postura da equipe" }
+        ]
+      },
+      {
+        id: "deposito",
+        title: "Depósito",
+        points: [
+          { title: "Marcas e modelos setorizados" },
+          { title: "Itens no padrão de embalagem" },
+          { title: "Qualidade das embalagens" },
+          { title: "Iluminação completa nos corredores" },
+          { title: "Organização do depósito" }
+        ]
+      },
+      {
+        id: "controle",
+        title: "Controle Operacional",
+        points: [
+          {
+            title: "Conferência de mercadorias recebidas",
+            hint: "Mercadoria recebida • planilha de controle de entrada • conferência de divergências",
+            objective: "Conferir se as mercadorias recebidas fisicamente correspondem às informações registradas na planilha de controle de entrada."
+          },
+          {
+            title: "Conferência das despesas do caixa",
+            hint: "Despesas lançadas • comprovantes • divergências",
+            objective: "Validar se todas as despesas lançadas no caixa possuem os respectivos comprovantes e se os valores conferem."
+          },
+          {
+            title: "Conferência do numerário em caixa",
+            hint: "Valor em caixa • dinheiro em espécie • excesso de numerário",
+            objective: "Conferir o valor existente no caixa e identificar se há quantidade excessiva de dinheiro em espécie."
+          },
+          {
+            title: "Conferência do ponto da equipe",
+            hint: "Ausências • atrasos • justificativas",
+            objective: "Conferir os registros de ponto da equipe, verificando ausências, atrasos e suas respectivas justificativas."
+          }
+        ]
+      }
+    ];
+
+    const SALE_STEPS = [
+      "Abordagem",
+      "Sondagem (PRS)",
+      "Direcionamento ao setor",
+      "RPN",
+      "Top 3/4",
+      "FIP",
+      "ODC",
+      "PEP",
+      "Passe",
+      "Contrato Verbal",
+      "Influencer / Sucesso",
+      "Selo"
+    ];
+
+    const pointIds = SECTIONS.flatMap(section => section.points.map((_, index) => `${section.id}-${index}`));
+    let state = defaultState();
+    let savedCache = [];
+
+    const storeSelect = document.getElementById("store");
+    const inspectorInput = document.getElementById("inspector");
+    const dateInput = document.getElementById("date");
+    const sectionsEl = document.getElementById("sections");
+    const tabsEl = document.getElementById("sectionTabs");
+    const miniEl = document.getElementById("sectionMini");
+    const historyStoresEl = document.getElementById("historyStores");
+    const historyPdfsEl = document.getElementById("historyPdfs");
+    const historyTitleEl = document.getElementById("historyTitle");
+    let selectedHistoryStore = state.store;
+    let activeSectionId = "";
+    let eventsBound = false;
+
+    function defaultState() {
+      const today = new Date().toISOString().slice(0, 10);
+      return {
+        network: "milpassos",
+        store: ALL_STORES[0],
+        inspector: "",
+        date: today,
+        points: Object.fromEntries(pointIds.map(id => [id, { status: "", note: "", photos: [] }])),
+        sellers: []
+      };
+    }
+
+    function pointTitle(point) {
+      return typeof point === "string" ? point : point.title;
+    }
+
+    function customPointTitle(id, point, source = state) {
+      const item = (source.points || {})[id] || {};
+      const title = String(item.title || "").trim();
+      return title || pointTitle(point);
+    }
+
+    function pointHint(point) {
+      return typeof point === "string" ? "" : point.hint || "";
+    }
+
+    function pointObjective(point) {
+      return typeof point === "string" ? "" : point.objective || "";
+    }
+
+    function normalizeState(input = {}) {
+      const base = defaultState();
+      const store = input.store || base.store;
+      return {
+        ...base,
+        ...input,
+        store,
+        network: networkForStore(store),
+        points: { ...base.points, ...(input.points || {}) },
+        sellers: Array.isArray(input.sellers) ? input.sellers.map(normalizedSeller) : []
+      };
+    }
+
+    function sectionDisplayOrder() {
+      return [
+        ...SECTIONS.filter(section => section.id !== "controle"),
+        { id: "vendedores", title: "Avaliação do Vendedor" },
+        ...SECTIONS.filter(section => section.id === "controle")
+      ];
+    }
+
+    function isSectionOpen(sectionId) {
+      return activeSectionId === sectionId;
+    }
+
+    function toggleSection(sectionId) {
+      activeSectionId = activeSectionId === sectionId ? "" : sectionId;
+      renderTabs();
+      renderSections();
+      saveState();
+      const section = activeSectionId ? document.getElementById(activeSectionId) : null;
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function syncSectionVisibility() {
+      sectionDisplayOrder().forEach(section => {
+        const tab = tabsEl.querySelector(`[data-toggle-section="${section.id}"]`);
+        if (tab) tab.classList.toggle("active", isSectionOpen(section.id));
+      });
+    }
+
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        if (!("indexedDB" in window)) {
+          reject(new Error("IndexedDB indisponível"));
+          return;
+        }
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = () => {
+          request.result.createObjectStore(DB_STORE);
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function dbGet(key) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const request = db.transaction(DB_STORE, "readonly").objectStore(DB_STORE).get(key);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function dbSet(key, value) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const request = db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE).put(value, key);
+        request.onsuccess = () => resolve(true);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function dbDelete(key) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const request = db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE).delete(key);
+        request.onsuccess = () => resolve(true);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return saved ? normalizeState(saved) : defaultState();
+      } catch {
+        return defaultState();
+      }
+    }
+
+    async function loadStateAsync() {
+      try {
+        const saved = await dbGet(STORAGE_KEY);
+        if (!saved) return loadState();
+        return normalizeState(saved);
+      } catch {
+        return loadState();
+      }
+    }
+
+    async function saveState(showWarning = false) {
+      try {
+        await dbSet(STORAGE_KEY, state);
+        setStorageWarning(false);
+        return true;
+      } catch {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          setStorageWarning(false);
+          return true;
+        } catch {
+          if (showWarning) setStorageWarning(true);
+          return false;
+        }
+      }
+    }
+
+    function loadSavedChecklists() {
+      return savedCache;
+    }
+
+    async function loadSavedChecklistsAsync() {
+      try {
+        const indexed = await dbGet(SAVED_KEY);
+        if (Array.isArray(indexed)) return indexed;
+      } catch {
+        // Fallback below.
+      }
+      try {
+        return JSON.parse(localStorage.getItem(SAVED_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    async function writeSavedChecklists(items, showWarning = false) {
+      savedCache = items;
+      try {
+        await dbSet(SAVED_KEY, items);
+        setStorageWarning(false);
+        return true;
+      } catch {
+        try {
+          localStorage.setItem(SAVED_KEY, JSON.stringify(items));
+          setStorageWarning(false);
+          return true;
+        } catch {
+          if (showWarning) setStorageWarning(true);
+          return false;
+        }
+      }
+    }
+
+    function copyState(source = state) {
+      return JSON.parse(JSON.stringify(source));
+    }
+
+    function checklistCounts(checklistState = state) {
+      const points = checklistState.points || {};
+      return pointIds.reduce((acc, id) => {
+        const status = points[id] ? points[id].status : "";
+        if (status) acc.filled += 1;
+        if (acc[status] !== undefined) acc[status] += 1;
+        return acc;
+      }, { success: 0, attention: 0, critical: 0, filled: 0 });
+    }
+
+    function checklistPhotoCount(checklistState = state) {
+      const points = checklistState.points || {};
+      return pointIds.reduce((total, id) => total + (((points[id] && points[id].photos) || []).length), 0);
+    }
+
+    function checklistNoteSummary(checklistState = state) {
+      const notedPoints = [];
+      const points = checklistState.points || {};
+      SECTIONS.forEach(section => {
+        section.points.forEach((point, index) => {
+          const item = points[`${section.id}-${index}`] || {};
+          const note = String(item.note || "").trim();
+          if (!note) return;
+          notedPoints.push({
+            point: customPointTitle(`${section.id}-${index}`, point, checklistState),
+            status: item.status,
+            note: note.replace(/\s+/g, " ")
+          });
+        });
+      });
+
+      if (!notedPoints.length) return "Sem observações registradas.";
+
+      const priority = { critical: 0, attention: 1, success: 2, na: 3 };
+      notedPoints.sort((a, b) => ((priority[a.status] !== undefined ? priority[a.status] : 4) - (priority[b.status] !== undefined ? priority[b.status] : 4)));
+      const summary = notedPoints.slice(0, 2).map(item => `${item.point}: ${item.note}`).join(" | ");
+      return summary.length > 190 ? `${summary.slice(0, 187)}...` : summary;
+    }
+
+    function checklistSavedTimestamp(item) {
+      return Date.parse(item.updatedAt || item.date || "") || 0;
+    }
+
+    async function saveChecklistSnapshot() {
+      await saveState(false);
+      const saved = loadSavedChecklists();
+      const now = new Date();
+      const existingIndex = saved.findIndex(item => (
+        item.store === state.store && item.date === state.date
+      ));
+      const snapshot = {
+        id: existingIndex >= 0 ? saved[existingIndex].id : String(now.getTime()),
+        store: state.store,
+        network: networkForStore(state.store),
+        date: state.date,
+        inspector: state.inspector,
+        updatedAt: now.toISOString(),
+        state: copyState()
+      };
+
+      if (existingIndex >= 0) saved.splice(existingIndex, 1);
+      saved.unshift(snapshot);
+
+      if (!await writeSavedChecklists(saved)) {
+        alert("Não foi possível salvar. O limite de armazenamento do navegador foi atingido; remova algumas fotos ou apague checklists antigos.");
+        return;
+      }
+      selectedHistoryStore = state.store;
+      renderQuickSaves();
+      alert("Checklist salvo no histórico PDF.");
+    }
+
+    async function loadChecklistSnapshot(id) {
+      const saved = loadSavedChecklists();
+      const item = saved.find(entry => entry.id === id);
+      if (!item) return;
+      if (!confirm(`Carregar o checklist salvo de ${item.store}? A vistoria atual será substituída na tela.`)) return;
+      state = normalizeState(copyState(item.state));
+      hydrateCurrentView();
+      await saveState();
+      updateSummary();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function deleteChecklistSnapshot(id) {
+      const saved = loadSavedChecklists();
+      const item = saved.find(entry => entry.id === id);
+      if (!item || !confirm(`Apagar o checklist salvo de ${item.store}?`)) return;
+      await writeSavedChecklists(saved.filter(entry => entry.id !== id), false);
+      renderQuickSaves();
+    }
+
+    function downloadHistoryFile() {
+      const saved = loadSavedChecklists();
+      if (!saved.length) {
+        alert("Nenhum checklist salvo para baixar.");
+        return;
+      }
+      downloadJsonFile(saved, `historico-checklists-${new Date().toISOString().slice(0, 10)}.json`);
+    }
+
+    function downloadChecklistFile(id) {
+      const item = loadSavedChecklists().find(entry => entry.id === id);
+      if (!item) return;
+      const fileStore = slugify(item.store || "loja");
+      downloadJsonFile(item, `checklist-${fileStore}-${item.date || "sem-data"}.json`);
+    }
+
+    function downloadJsonFile(data, filename) {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function openSavedPdf(id) {
+      const item = loadSavedChecklists().find(entry => entry.id === id);
+      if (!item) return;
+      generateReport(item.state || defaultState(), false);
+    }
+
+    function setAppTab(tab) {
+      const isHistory = tab === "history";
+      document.getElementById("checklistView").hidden = isHistory;
+      document.getElementById("historyView").hidden = !isHistory;
+      document.querySelectorAll("[data-app-tab]").forEach(button => {
+        button.classList.toggle("active", button.dataset.appTab === tab);
+      });
+      if (isHistory) {
+        selectedHistoryStore = selectedHistoryStore || state.store;
+        renderQuickSaves();
+      }
+    }
+
+    async function clearCurrentChecklist() {
+      state = defaultState();
+      activeSectionId = "";
+      try {
+        await dbDelete(STORAGE_KEY);
+      } catch {
+        // Fallback abaixo.
+      }
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // Ignora limpeza indisponível.
+      }
+      hydrateCurrentView();
+      await saveState();
+      updateSummary();
+      setStorageWarning(false);
+    }
+
+    async function clearSavedHistory() {
+      if (!confirm("Apagar todos os PDFs salvos no histórico?")) return;
+      savedCache = [];
+      try {
+        await dbDelete(SAVED_KEY);
+      } catch {
+        // Fallback abaixo.
+      }
+      try {
+        localStorage.removeItem(SAVED_KEY);
+      } catch {
+        // Ignora limpeza indisponível.
+      }
+      renderQuickSaves();
+      setStorageWarning(false);
+      alert("Histórico apagado.");
+    }
+
+    function hydrateCurrentView() {
+      renderStores();
+      inspectorInput.value = state.inspector;
+      dateInput.value = state.date;
+      renderSections();
+      renderQuickSaves();
+    }
+
+    function renderQuickSaves() {
+      const saved = loadSavedChecklists().sort((a, b) => checklistSavedTimestamp(b) - checklistSavedTimestamp(a));
+      const knownStores = Object.values(NETWORKS).flatMap(network => network.stores);
+      const grouped = saved.reduce((acc, item) => {
+        const store = item.store || "Loja não informada";
+        if (!acc[store]) acc[store] = [];
+        acc[store].push(item);
+        return acc;
+      }, {});
+
+      const stores = [...new Set(knownStores.concat(Object.keys(grouped)))];
+      if (!stores.includes(selectedHistoryStore)) selectedHistoryStore = stores[0] || "";
+
+      historyStoresEl.innerHTML = stores.map(store => {
+        const count = grouped[store] ? grouped[store].length : 0;
+        return `
+          <button class="${store === selectedHistoryStore ? "active" : ""}" type="button" data-history-store="${escapeAttr(store)}">
+            <strong>${escapeHtml(store)}</strong>
+            <span>${count}</span>
+          </button>
+        `;
+      }).join("");
+
+      const items = grouped[selectedHistoryStore] || [];
+      historyTitleEl.textContent = selectedHistoryStore ? `PDFs salvos · ${selectedHistoryStore}` : "Histórico PDF";
+
+      if (!items.length) {
+        historyPdfsEl.innerHTML = `<p class="quick-save-empty">Nenhum checklist salvo para esta loja ainda.</p>`;
+        return;
+      }
+
+      historyPdfsEl.innerHTML = items.map(item => {
+        const savedState = normalizeState(item.state || defaultState());
+        const counts = checklistCounts(savedState);
+        const photos = checklistPhotoCount(savedState);
+        const sellers = Array.isArray(savedState.sellers) ? savedState.sellers.length : 0;
+        const progress = Math.round((counts.filled / pointIds.length) * 100);
+        return `
+          <button class="pdf-preview" type="button" data-open-pdf="${escapeAttr(item.id)}">
+            <span class="pdf-sheet">
+              <b>Relatório PDF</b>
+              <strong>${escapeHtml(formatDate(item.date))}</strong>
+              <span>${progress}% preenchido · ${photos} foto${photos === 1 ? "" : "s"} · ${sellers} vendedor${sellers === 1 ? "" : "es"}</span>
+              <p>${escapeHtml(checklistNoteSummary(savedState))}</p>
+              <span class="pdf-metrics">
+                <i>${counts.critical} críticos</i>
+                <i>${counts.attention} atenção</i>
+                <i>${counts.success} sucessos</i>
+              </span>
+            </span>
+            <span class="pdf-open-hint">Abrir relatório</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function setStorageWarning(visible, message = "Limite do navegador atingido. Remova algumas fotos ou use imagens menores.") {
+      document.querySelectorAll(".storage-warning").forEach(el => {
+        el.textContent = message;
+        el.classList.toggle("show", visible);
+      });
+    }
+
+    async function migrateLegacyStorage() {
+      try {
+        await dbSet(STORAGE_KEY, state);
+        await dbSet(SAVED_KEY, savedCache);
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(SAVED_KEY);
+      } catch {
+        // Se o IndexedDB não estiver disponível, mantemos o fallback em localStorage.
+      }
+    }
+
+    async function init() {
+      try {
+        state = await loadStateAsync();
+        savedCache = await loadSavedChecklistsAsync();
+        selectedHistoryStore = state.store;
+        activeSectionId = "";
+        await migrateLegacyStorage();
+        state.network = networkForStore(state.store);
+        renderStores();
+        inspectorInput.value = state.inspector;
+        dateInput.value = state.date;
+        renderTabs();
+        renderSections();
+        renderQuickSaves();
+        bindGlobalEvents();
+        updateSummary();
+        document.body.classList.add("app-ready");
+      } catch (error) {
+        console.error(error);
+        state = defaultState();
+        renderStores();
+        inspectorInput.value = state.inspector;
+        dateInput.value = state.date;
+        renderTabs();
+        renderSections();
+        updateSummary();
+        bindGlobalEvents();
+        document.body.classList.add("app-ready");
+        alert("O checklist encontrou um erro ao carregar dados antigos. A tela foi reiniciada para continuar funcionando.");
+      }
+    }
+
+    function renderStores() {
+      if (!ALL_STORES.includes(state.store)) state.store = ALL_STORES[0];
+      state.network = networkForStore(state.store);
+      storeSelect.innerHTML = ALL_STORES.map(store => (
+        `<option value="${escapeAttr(store)}">${escapeHtml(store)}</option>`
+      )).join("");
+      storeSelect.value = state.store;
+    }
+
+    function renderTabs() {
+      tabsEl.innerHTML = sectionDisplayOrder().map((section, index) => (
+        `<button class="${isSectionOpen(section.id) ? "active" : ""}" type="button" data-toggle-section="${section.id}">
+          ${index + 1}. ${escapeHtml(section.title)}
+        </button>`
+      )).join("");
+    }
+
+    function renderSections() {
+      const renderCheckSection = section => {
+        const points = section.points.map((point, index) => renderPoint(section, point, index)).join("");
+        return `
+          <section class="panel check-section" id="${section.id}" data-section="${section.id}">
+            <div class="section-head">
+              <div class="section-title">
+                <h2>${escapeHtml(section.title)}</h2>
+                <p><span data-section-critical="${section.id}">0</span> críticos nesta seção</p>
+              </div>
+              <div class="section-actions">
+                <button class="secondary-button section-toggle" type="button" data-toggle-section="${section.id}">Fechar</button>
+                <button class="secondary-button" type="button" data-mark-section="${section.id}">Marcar seção como sucesso</button>
+                <button class="danger-button" type="button" data-clear-section="${section.id}">Limpar seção</button>
+              </div>
+            </div>
+            <div class="points">${points}</div>
+          </section>
+        `;
+      };
+      if (!activeSectionId) {
+        sectionsEl.innerHTML = "";
+      } else if (activeSectionId === "vendedores") {
+        sectionsEl.innerHTML = renderSellerSection();
+      } else {
+        const activeSection = SECTIONS.find(section => section.id === activeSectionId);
+        sectionsEl.innerHTML = activeSection ? renderCheckSection(activeSection) : "";
+      }
+      setStorageWarning(false);
+      syncSectionVisibility();
+    }
+
+    function renderPoint(section, point, index) {
+      const id = `${section.id}-${index}`;
+      const item = state.points[id] || { status: "", note: "", photos: [] };
+      const label = customPointTitle(id, point);
+      const hint = pointHint(point);
+      const objective = pointObjective(point);
+      const matchedStatus = STATUS.find(status => status.id === item.status);
+      const statusLabel = matchedStatus ? matchedStatus.label : "Pendente";
+      const buttons = STATUS.map(status => `
+        <button
+          class="status-button ${status.id} ${item.status === status.id ? "selected" : ""}"
+          type="button"
+          data-point="${id}"
+          data-status="${status.id}"
+        >${escapeHtml(status.label)}</button>
+      `).join("");
+      const thumbs = item.photos.map((photo, photoIndex) => `
+        <div class="thumb">
+          <img src="${photo.data}" alt="Foto de ${escapeAttr(label)}">
+          <button type="button" data-remove-photo="${id}" data-photo-index="${photoIndex}" aria-label="Remover foto">×</button>
+        </div>
+      `).join("");
+
+      return `
+        <article class="point" data-point-card="${id}">
+          <div class="point-top">
+            <div class="point-title-wrap">
+              <div class="point-title-line">
+                <h3 data-point-title-display="${id}">${escapeHtml(label)}</h3>
+                <button class="point-edit-button" type="button" data-edit-point-title="${id}" aria-label="Editar nome do ponto" title="Editar nome do ponto">⚙</button>
+              </div>
+              <div class="point-title-editor">
+                <input class="point-title-input" type="text" value="${escapeAttr(label)}" data-point-title="${id}" data-default-title="${escapeAttr(pointTitle(point))}" aria-label="Nome do ponto">
+                <button class="point-reset-title" type="button" data-reset-point-title="${id}" data-default-title="${escapeAttr(pointTitle(point))}">Padrão</button>
+              </div>
+              ${hint ? `<p class="point-hint">${escapeHtml(hint)}</p>` : ""}
+              ${objective ? `<p class="point-objective"><strong>Objetivo:</strong> ${escapeHtml(objective)}</p>` : ""}
+            </div>
+            <span class="status-pill ${item.status || ""}" data-pill="${id}">${escapeHtml(statusLabel)}</span>
+          </div>
+          <div class="status-grid">${buttons}</div>
+          <textarea data-note="${id}" placeholder="Observações deste ponto">${escapeHtml(item.note || "")}</textarea>
+          <div class="photo-row">
+            <label class="photo-label">
+              Tirar foto
+              <input type="file" accept="image/*" capture="environment" data-photo-input="${id}">
+            </label>
+            <span class="storage-warning">Limite do navegador atingido. Remova algumas fotos ou use imagens menores.</span>
+          </div>
+          <div class="thumbs" data-thumbs="${id}">${thumbs}</div>
+        </article>
+      `;
+    }
+
+    function createSeller() {
+      return {
+        id: String(Date.now()),
+        name: "",
+        expanded: true,
+        complete: false,
+        steps: SALE_STEPS.map(() => ({ score: "", note: "" }))
+      };
+    }
+
+    function normalizedSeller(seller) {
+      return {
+        id: seller.id || String(Date.now()),
+        name: seller.name || "",
+        expanded: seller.expanded !== false,
+        complete: seller.complete === true,
+        steps: SALE_STEPS.map((_, index) => ({
+          score: seller.steps && seller.steps[index] ? seller.steps[index].score || "" : "",
+          note: seller.steps && seller.steps[index] ? seller.steps[index].note || "" : ""
+        }))
+      };
+    }
+
+    function sellerAverage(seller) {
+      const scores = (seller.steps || []).map(step => Number(step.score)).filter(score => Number.isFinite(score));
+      if (scores.length !== SALE_STEPS.length) return null;
+      return Math.round((scores.reduce((sum, score) => sum + score, 0) / SALE_STEPS.length) * 10) / 10;
+    }
+
+    function gradeClass(value) {
+      const score = Number(value);
+      if (!Number.isFinite(score)) return "";
+      if (score >= 7) return "grade-good";
+      if (score >= 6) return "grade-warn";
+      return "grade-bad";
+    }
+
+    function renderSellerSummary(seller) {
+      return `
+        <div class="seller-summary">
+          ${SALE_STEPS.map((step, index) => {
+            const score = seller.steps && seller.steps[index] ? seller.steps[index].score || "-" : "-";
+            return `
+              <span class="seller-summary-item">
+                <span title="${escapeAttr(step)}">${index + 1}. ${escapeHtml(step)}</span>
+                <span class="seller-note ${gradeClass(score)}">${escapeHtml(score)}</span>
+              </span>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function validateSeller(seller) {
+      const missingScores = [];
+      const missingNotes = [];
+      SALE_STEPS.forEach((step, index) => {
+        const stepData = seller.steps && seller.steps[index] ? seller.steps[index] : {};
+        const score = Number(stepData.score);
+        const note = String(stepData.note || "").trim();
+        if (!Number.isFinite(score)) missingScores.push(step);
+        if (Number.isFinite(score) && score <= 6 && !note) missingNotes.push(step);
+      });
+      if (missingScores.length) return `Preencha as 12 notas. Faltando: ${missingScores.join(", ")}.`;
+      if (missingNotes.length) return `Notas de 1 a 6 precisam de justificativa: ${missingNotes.join(", ")}.`;
+      return "";
+    }
+
+    function renderSellerSection() {
+      const sellers = (state.sellers || []).map(normalizedSeller);
+      state.sellers = sellers;
+      const cards = sellers.length
+        ? sellers.map((seller, index) => renderSellerCard(seller, index)).join("")
+        : `<p class="seller-empty">Nenhum vendedor avaliado nesta visita.</p>`;
+
+      return `
+        <section class="panel seller-panel" id="vendedores">
+          <div class="section-head">
+            <div class="section-title">
+              <h2>Avaliação do Vendedor</h2>
+              <p>${sellers.length} vendedor${sellers.length === 1 ? "" : "es"} nesta vistoria</p>
+            </div>
+            <div class="section-actions">
+              <button class="secondary-button section-toggle" type="button" data-toggle-section="vendedores">Fechar</button>
+              <button class="primary-button" type="button" data-add-seller>+ Adicionar vendedor</button>
+            </div>
+          </div>
+          <div class="seller-list">${cards}</div>
+        </section>
+      `;
+    }
+
+    function renderSellerCard(seller, sellerIndex) {
+      const avg = sellerAverage(seller);
+      const title = seller.name.trim() || `Vendedor ${sellerIndex + 1}`;
+      const statusText = avg === null ? "Média pendente" : `Média ${avg.toFixed(1).replace(".", ",")}/10`;
+      const avgClass = gradeClass(avg);
+      const steps = SALE_STEPS.map((step, stepIndex) => {
+        const item = seller.steps[stepIndex] || { score: "", note: "" };
+        const score = item.score || "";
+        const rangeValue = score || 5;
+        const scoreClass = gradeClass(score);
+        return `
+          <div class="seller-step">
+            <div class="seller-step-title">
+              <span>${stepIndex + 1}. ${escapeHtml(step)}</span>
+              <span class="seller-grade ${scoreClass}" data-seller-grade="${escapeAttr(seller.id)}" data-step="${stepIndex}">${score ? `${score}/10` : "Sem nota"}</span>
+            </div>
+            <div class="seller-slider-row">
+              <span>1</span>
+              <input type="range" min="1" max="10" step="1" value="${escapeAttr(rangeValue)}" data-seller-score="${escapeAttr(seller.id)}" data-step="${stepIndex}">
+              <span>10</span>
+            </div>
+            <textarea data-seller-note="${escapeAttr(seller.id)}" data-step="${stepIndex}" placeholder="${Number(score) <= 6 && score ? "Justificativa obrigatória" : "Observação opcional"}">${escapeHtml(item.note || "")}</textarea>
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <article class="seller-card ${seller.expanded ? "" : "collapsed"}" data-seller-card="${escapeAttr(seller.id)}">
+          <button class="seller-head" type="button" data-toggle-seller="${escapeAttr(seller.id)}">
+            <div>
+              <strong>${escapeHtml(title)}</strong>
+            </div>
+            <span class="seller-average ${avgClass}" data-seller-average="${escapeAttr(seller.id)}">${escapeHtml(statusText)}</span>
+          </button>
+          <div class="seller-body">
+            ${renderSellerSummary(seller)}
+            <div class="seller-name-row">
+              <div class="field">
+                <label>Nome do vendedor</label>
+                <input type="text" value="${escapeAttr(seller.name)}" data-seller-name="${escapeAttr(seller.id)}" placeholder="Digite o nome">
+              </div>
+              <button class="danger-button" type="button" data-remove-seller="${escapeAttr(seller.id)}">Remover</button>
+            </div>
+            <div class="seller-steps">${steps}</div>
+            <p class="seller-error" data-seller-error="${escapeAttr(seller.id)}"></p>
+            <button class="primary-button" type="button" data-complete-seller="${escapeAttr(seller.id)}">Concluir vendedor</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function findSeller(id) {
+      state.sellers = (state.sellers || []).map(normalizedSeller);
+      return state.sellers.find(seller => seller.id === id);
+    }
+
+    function addSeller() {
+      state.sellers = (state.sellers || []).map(seller => ({ ...normalizedSeller(seller), expanded: false }));
+      state.sellers.push(createSeller());
+      activeSectionId = "vendedores";
+      renderSections();
+      renderTabs();
+      saveState();
+      updateSummary();
+    }
+
+    function toggleSeller(id) {
+      state.sellers = (state.sellers || []).map(seller => {
+        const normalized = normalizedSeller(seller);
+        return { ...normalized, expanded: normalized.id === id ? !normalized.expanded : false };
+      });
+      renderSections();
+      saveState();
+    }
+
+    function completeSeller(id) {
+      const seller = findSeller(id);
+      if (!seller) return;
+      const error = validateSeller(seller);
+      const errorEl = document.querySelector(`[data-seller-error="${id}"]`);
+      if (error) {
+        if (errorEl) {
+          errorEl.textContent = error;
+          errorEl.classList.add("show");
+        } else {
+          alert(error);
+        }
+        return;
+      }
+      seller.complete = true;
+      seller.expanded = false;
+      renderSections();
+      saveState();
+      updateSummary();
+    }
+
+    function removeSeller(id) {
+      if (!confirm("Remover esta avaliação de vendedor?")) return;
+      state.sellers = (state.sellers || []).filter(seller => seller.id !== id);
+      renderSections();
+      saveState();
+      updateSummary();
+    }
+
+    function refreshSellerScoreDisplay(seller, stepIndex) {
+      const score = seller.steps[stepIndex] ? seller.steps[stepIndex].score || "" : "";
+      const avg = sellerAverage(seller);
+      const gradeEl = document.querySelector(`[data-seller-grade="${seller.id}"][data-step="${stepIndex}"]`);
+      const avgEl = document.querySelector(`[data-seller-average="${seller.id}"]`);
+      const noteEl = document.querySelector(`[data-seller-note="${seller.id}"][data-step="${stepIndex}"]`);
+
+      if (gradeEl) {
+        gradeEl.textContent = score ? `${score}/10` : "Sem nota";
+        gradeEl.className = `seller-grade ${gradeClass(score)}`;
+      }
+      if (avgEl) {
+        avgEl.textContent = avg === null ? "Média pendente" : `Média ${avg.toFixed(1).replace(".", ",")}/10`;
+        avgEl.className = `seller-average ${gradeClass(avg)}`;
+      }
+      if (noteEl) noteEl.placeholder = Number(score) <= 6 && score ? "Justificativa obrigatória" : "Observação opcional";
+    }
+
+    function bindGlobalEvents() {
+      if (eventsBound) return;
+      eventsBound = true;
+
+      storeSelect.addEventListener("change", () => {
+        state.store = storeSelect.value;
+        state.network = networkForStore(state.store);
+        saveState();
+      });
+      inspectorInput.addEventListener("input", () => {
+        state.inspector = inspectorInput.value;
+        saveState();
+      });
+      dateInput.addEventListener("change", () => {
+        state.date = dateInput.value;
+        saveState();
+      });
+
+      document.querySelectorAll("[data-app-tab]").forEach(button => {
+        button.addEventListener("click", () => setAppTab(button.dataset.appTab));
+      });
+
+      tabsEl.addEventListener("click", event => {
+        const sectionButton = event.target.closest("[data-toggle-section]");
+        if (!sectionButton) return;
+        toggleSection(sectionButton.dataset.toggleSection);
+      });
+
+      sectionsEl.addEventListener("click", event => {
+        const statusButton = event.target.closest("[data-status]");
+        const removePhoto = event.target.closest("[data-remove-photo]");
+        const markSection = event.target.closest("[data-mark-section]");
+        const clearSection = event.target.closest("[data-clear-section]");
+        const toggleSectionButton = event.target.closest("[data-toggle-section]");
+        const editPointTitleButton = event.target.closest("[data-edit-point-title]");
+        const resetPointTitleButton = event.target.closest("[data-reset-point-title]");
+        const addSellerButton = event.target.closest("[data-add-seller]");
+        const toggleSellerButton = event.target.closest("[data-toggle-seller]");
+        const completeSellerButton = event.target.closest("[data-complete-seller]");
+        const removeSellerButton = event.target.closest("[data-remove-seller]");
+
+        if (editPointTitleButton) togglePointTitleEditor(editPointTitleButton.dataset.editPointTitle);
+        if (resetPointTitleButton) resetPointTitle(resetPointTitleButton.dataset.resetPointTitle, resetPointTitleButton.dataset.defaultTitle || "");
+        if (statusButton) setPointStatus(statusButton.dataset.point, statusButton.dataset.status);
+        if (removePhoto) removePhotoAt(removePhoto.dataset.removePhoto, Number(removePhoto.dataset.photoIndex));
+        if (markSection) markSectionSuccess(markSection.dataset.markSection);
+        if (clearSection) clearSectionData(clearSection.dataset.clearSection);
+        if (toggleSectionButton) toggleSection(toggleSectionButton.dataset.toggleSection);
+        if (addSellerButton) addSeller();
+        if (toggleSellerButton) toggleSeller(toggleSellerButton.dataset.toggleSeller);
+        if (completeSellerButton) completeSeller(completeSellerButton.dataset.completeSeller);
+        if (removeSellerButton) removeSeller(removeSellerButton.dataset.removeSeller);
+      });
+
+      sectionsEl.addEventListener("input", event => {
+        const pointTitleInput = event.target.closest("[data-point-title]");
+        const note = event.target.closest("[data-note]");
+        const sellerName = event.target.closest("[data-seller-name]");
+        const sellerNote = event.target.closest("[data-seller-note]");
+        const sellerScore = event.target.closest("[data-seller-score]");
+
+        if (pointTitleInput) {
+          const id = pointTitleInput.dataset.pointTitle;
+          if (!state.points[id]) state.points[id] = { status: "", note: "", photos: [] };
+          state.points[id].title = pointTitleInput.value;
+          const display = sectionsEl.querySelector(`[data-point-title-display="${id}"]`);
+          if (display) display.textContent = pointTitleInput.value.trim() || pointTitleInput.dataset.defaultTitle || "";
+          saveState();
+          return;
+        }
+
+        if (note) {
+          if (!state.points[note.dataset.note]) state.points[note.dataset.note] = { status: "", note: "", photos: [] };
+          state.points[note.dataset.note].note = note.value;
+          saveState();
+          return;
+        }
+
+        if (sellerName) {
+          const seller = findSeller(sellerName.dataset.sellerName);
+          if (!seller) return;
+          seller.name = sellerName.value;
+          saveState();
+          return;
+        }
+
+        if (sellerNote) {
+          const seller = findSeller(sellerNote.dataset.sellerNote);
+          if (!seller) return;
+          seller.steps[Number(sellerNote.dataset.step)].note = sellerNote.value;
+          saveState();
+          return;
+        }
+
+        if (sellerScore) {
+          const seller = findSeller(sellerScore.dataset.sellerScore);
+          if (!seller) return;
+          const stepIndex = Number(sellerScore.dataset.step);
+          seller.steps[stepIndex].score = sellerScore.value;
+          refreshSellerScoreDisplay(seller, stepIndex);
+          saveState();
+          updateSummary();
+        }
+      });
+
+      sectionsEl.addEventListener("change", event => {
+        const input = event.target.closest("[data-photo-input]");
+        if (!input || !input.files.length) return;
+        addPhotos(input.dataset.photoInput, Array.from(input.files));
+        input.value = "";
+      });
+
+      historyStoresEl.addEventListener("click", event => {
+        const storeButton = event.target.closest("[data-history-store]");
+        if (!storeButton) return;
+        selectedHistoryStore = storeButton.dataset.historyStore;
+        renderQuickSaves();
+      });
+
+      historyPdfsEl.addEventListener("click", event => {
+        const pdfButton = event.target.closest("[data-open-pdf]");
+        if (!pdfButton) return;
+        openSavedPdf(pdfButton.dataset.openPdf);
+      });
+
+      miniEl.addEventListener("click", event => {
+        const sectionButton = event.target.closest("[data-toggle-section]");
+        if (!sectionButton) return;
+        toggleSection(sectionButton.dataset.toggleSection);
+      });
+
+      document.getElementById("generateReport").addEventListener("click", () => generateReport());
+      document.getElementById("generateReportSide").addEventListener("click", () => generateReport());
+      document.getElementById("generatePhotos").addEventListener("click", generatePhotosReport);
+      document.getElementById("generatePhotosSide").addEventListener("click", generatePhotosReport);
+      document.getElementById("saveChecklist").addEventListener("click", () => saveChecklistSnapshot());
+      document.getElementById("downloadHistory").addEventListener("click", downloadHistoryFile);
+      document.getElementById("clearHistory").addEventListener("click", () => clearSavedHistory());
+      document.getElementById("clearAll").addEventListener("click", async () => {
+        if (!confirm("Limpar toda a vistoria atual?")) return;
+        await clearCurrentChecklist();
+      });
+    }
+
+    function togglePointTitleEditor(pointId) {
+      const card = document.querySelector(`[data-point-card="${pointId}"]`);
+      if (!card) return;
+      const isOpen = card.classList.toggle("editing-title");
+      if (isOpen) {
+        const input = card.querySelector(`[data-point-title="${pointId}"]`);
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }
+    }
+
+    function resetPointTitle(pointId, defaultTitle) {
+      if (!state.points[pointId]) state.points[pointId] = { status: "", note: "", photos: [] };
+      state.points[pointId].title = "";
+      const card = document.querySelector(`[data-point-card="${pointId}"]`);
+      if (card) {
+        const input = card.querySelector(`[data-point-title="${pointId}"]`);
+        const display = card.querySelector(`[data-point-title-display="${pointId}"]`);
+        if (input) input.value = defaultTitle;
+        if (display) display.textContent = defaultTitle;
+      }
+      saveState();
+    }
+
+    function setPointStatus(pointId, status) {
+      if (!state.points[pointId]) state.points[pointId] = { status: "", note: "", photos: [] };
+      state.points[pointId].status = status;
+      const card = document.querySelector(`[data-point-card="${pointId}"]`);
+      if (!card) return;
+      card.querySelectorAll(".status-button").forEach(button => {
+        button.classList.toggle("selected", button.dataset.status === status);
+      });
+      const pill = card.querySelector(`[data-pill="${pointId}"]`);
+      pill.className = `status-pill ${status}`;
+      pill.textContent = STATUS.find(item => item.id === status).label;
+      saveState();
+      updateSummary();
+    }
+
+    function markSectionSuccess(sectionId) {
+      const section = SECTIONS.find(item => item.id === sectionId);
+      section.points.forEach((_, index) => {
+        const pointId = `${sectionId}-${index}`;
+        if (!state.points[pointId]) state.points[pointId] = { status: "", note: "", photos: [] };
+        state.points[pointId].status = "success";
+      });
+      renderSections();
+      saveState();
+      updateSummary();
+    }
+
+    function clearSectionData(sectionId) {
+      if (!confirm("Limpar todos os pontos desta seção?")) return;
+      const section = SECTIONS.find(item => item.id === sectionId);
+      section.points.forEach((_, index) => {
+        const pointId = `${sectionId}-${index}`;
+        const title = state.points[pointId] ? state.points[pointId].title : "";
+        state.points[pointId] = { status: "", note: "", photos: [], title };
+      });
+      renderSections();
+      saveState();
+      updateSummary();
+    }
+
+    async function addPhotos(pointId, files) {
+      if (!state.points[pointId]) state.points[pointId] = { status: "", note: "", photos: [] };
+      const current = state.points[pointId].photos || [];
+      const converted = [];
+      for (const file of files) {
+        try {
+          converted.push({
+            name: file.name,
+            data: await resizeImage(file, 1400, .78)
+          });
+        } catch {
+          converted.push({
+            name: file.name,
+            data: await fileToDataUrl(file)
+          });
+        }
+      }
+      state.points[pointId].photos = current.concat(converted);
+      if (!await saveState(true)) {
+        state.points[pointId].photos = current;
+        await saveState(false);
+        setStorageWarning(true, "Não deu para salvar esta foto porque o armazenamento do navegador está cheio. Apague PDFs antigos do histórico ou use uma foto menor.");
+        return;
+      }
+      renderSections();
+      updateSummary();
+    }
+
+    function removePhotoAt(pointId, index) {
+      if (!state.points[pointId]) return;
+      state.points[pointId].photos.splice(index, 1);
+      saveState();
+      renderSections();
+      setStorageWarning(false);
+    }
+
+    function updateSummary() {
+      const counts = { success: 0, attention: 0, critical: 0, filled: 0 };
+      pointIds.forEach(id => {
+        const status = state.points[id] ? state.points[id].status : "";
+        if (status) counts.filled += 1;
+        if (counts[status] !== undefined) counts[status] += 1;
+      });
+      document.getElementById("criticalCount").textContent = counts.critical;
+      document.getElementById("attentionCount").textContent = counts.attention;
+      document.getElementById("successCount").textContent = counts.success;
+      document.getElementById("progressCount").textContent = `${Math.round((counts.filled / pointIds.length) * 100)}%`;
+
+      SECTIONS.forEach(section => {
+        const critical = section.points.filter((_, index) => {
+          const point = state.points[`${section.id}-${index}`];
+          return point && point.status === "critical";
+        }).length;
+        document.querySelectorAll(`[data-section-critical="${section.id}"]`).forEach(el => {
+          el.textContent = critical;
+        });
+      });
+
+      miniEl.innerHTML = SECTIONS.map(section => {
+        const critical = section.points.filter((_, index) => {
+          const point = state.points[`${section.id}-${index}`];
+          return point && point.status === "critical";
+        }).length;
+        return `<button type="button" data-toggle-section="${section.id}"><span>${escapeHtml(section.title)}</span><b>${critical}</b></button>`;
+      }).join("");
+    }
+
+    function generateReport(reportState = state, persistCurrent = true) {
+      if (persistCurrent) saveState();
+      const source = normalizeState(reportState);
+      const counts = checklistCounts(source);
+
+      const reportSections = SECTIONS.map(section => `
+        <section class="report-section">
+          <h2>${escapeHtml(section.title)}</h2>
+          ${section.points.map((point, index) => {
+            const id = `${section.id}-${index}`;
+            const item = source.points[id] || {};
+            const label = customPointTitle(id, point, source);
+            const hint = pointHint(point);
+            const objective = pointObjective(point);
+            const status = STATUS.find(s => s.id === item.status);
+            const photos = (item.photos || []).map(photo => `<img src="${photo.data}" alt="Foto de ${escapeAttr(label)}">`).join("");
+            return `
+              <article class="report-point">
+                <div class="report-point-head">
+                  <h3>${escapeHtml(label)}</h3>
+                  <span class="report-status ${item.status || "pending"}">${escapeHtml(status ? status.label : "Pendente")}</span>
+                </div>
+                ${hint ? `<small>${escapeHtml(hint)}</small>` : ""}
+                ${objective ? `<small><strong>Objetivo:</strong> ${escapeHtml(objective)}</small>` : ""}
+                <p>${escapeHtml(item.note || "Sem observação.")}</p>
+                ${photos ? `<div class="report-photos">${photos}</div>` : ""}
+              </article>
+            `;
+          }).join("")}
+        </section>
+      `).join("");
+
+      const sellerReport = source.sellers.length ? `
+        <section class="report-section">
+          <h2>Avaliação do Vendedor</h2>
+          ${source.sellers.map((seller, sellerIndex) => {
+            const avg = sellerAverage(seller);
+            return `
+              <article class="report-seller">
+                <div class="report-point-head">
+                  <h3>${escapeHtml(seller.name || `Vendedor ${sellerIndex + 1}`)}</h3>
+                  <span class="report-status ${gradeClass(avg)}">${avg === null ? "Média pendente" : `${avg.toFixed(1).replace(".", ",")}/10`}</span>
+                </div>
+                <div class="seller-report-grid">
+                  ${SALE_STEPS.map((step, stepIndex) => {
+                    const item = seller.steps[stepIndex] || {};
+                    return `
+                      <div>
+                        <strong><span>${stepIndex + 1}. ${escapeHtml(step)}</span><b class="${gradeClass(item.score)}">${escapeHtml(item.score || "-")}/10</b></strong>
+                        <p>${escapeHtml(item.note || "Sem observação.")}</p>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </article>
+            `;
+          }).join("")}
+        </section>
+      ` : "";
+
+      const html = `<!doctype html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Relatório de vistoria operacional</title>
+          <style>
+            :root { font-family: Inter, "Segoe UI", Arial, sans-serif; color: #17212b; }
+            body { margin: 0; background: #f4f6f8; }
+            .report { width: min(1080px, 100%); margin: 0 auto; padding: 26px; }
+            .hero, .report-section { background: #fff; border: 1px solid #dfe5ec; border-radius: 8px; box-shadow: 0 10px 24px rgba(20, 31, 43, .07); }
+            .hero { padding: 24px; margin-bottom: 18px; }
+            h1 { margin: 0 0 14px; font-size: 32px; letter-spacing: 0; }
+            h2 { margin: 0; font-size: 23px; letter-spacing: 0; }
+            h3 { margin: 0; font-size: 17px; letter-spacing: 0; }
+            .meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; margin-top: 14px; }
+            .meta div, .summary div { padding: 11px 12px; background: #f7f9fb; border: 1px solid #e1e7ed; border-radius: 8px; }
+            .meta span, .summary span { display: block; color: #66717f; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+            .meta strong, .summary strong { display: block; margin-top: 3px; font-size: 17px; }
+            .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+            .summary strong { font-size: 28px; }
+            .critical strong { color: #c53030; } .attention strong { color: #b77905; } .success strong { color: #138a45; } .progress strong { color: #195b63; }
+            .print-row { display: flex; justify-content: flex-end; margin: 16px 0; }
+            button { min-height: 46px; padding: 0 18px; border: 0; border-radius: 8px; background: #195b63; color: #fff; font-weight: 800; cursor: pointer; }
+            .report-section { padding: 18px; margin-bottom: 16px; break-inside: avoid; }
+            .report-section h2 { padding-bottom: 12px; border-bottom: 1px solid #dfe5ec; }
+            .report-point { padding: 14px 0; border-bottom: 1px solid #e7ebef; break-inside: avoid; }
+            .report-point:last-child { border-bottom: 0; padding-bottom: 0; }
+            .report-point-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+            small { display: block; margin-top: 5px; color: #66717f; font-weight: 750; }
+            .report-status { flex-shrink: 0; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 900; text-transform: uppercase; background: #eceff3; color: #6b7280; }
+            .report-status.success { background: #e7f6ee; color: #138a45; }
+            .report-status.attention { background: #fff4d6; color: #b77905; }
+            .report-status.critical { background: #fde8e8; color: #c53030; }
+            .report-status.na { background: #eceff3; color: #6b7280; }
+            .report-status.pending { background: #eef1f5; color: #687282; }
+            p { color: #334155; line-height: 1.5; margin: 9px 0 0; white-space: pre-wrap; }
+            .report-photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+            .report-photos img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #fff; border-radius: 8px; border: 1px solid #dfe5ec; }
+            .report-seller { padding: 14px 0; border-bottom: 1px solid #e7ebef; break-inside: avoid; }
+            .report-seller:last-child { border-bottom: 0; padding-bottom: 0; }
+            .seller-report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+            .seller-report-grid div { padding: 10px; border-radius: 8px; background: #f7f9fb; border: 1px solid #e1e7ed; }
+            .seller-report-grid strong { display: flex; justify-content: space-between; gap: 10px; color: #253241; }
+            .seller-report-grid b { border-radius: 999px; padding: 3px 7px; white-space: nowrap; }
+            .grade-good { background: #e7f6ee; color: #138a45; }
+            .grade-warn { background: #fff4d6; color: #b77905; }
+            .grade-bad { background: #fde8e8; color: #c53030; }
+            @media print {
+              body { background: #fff; }
+              .report { padding: 0; width: 100%; }
+              .hero, .report-section { box-shadow: none; border-color: #cfd6de; }
+              .print-row { display: none; }
+            }
+            @media (max-width: 760px) {
+              .report { padding: 14px; }
+              .meta, .summary { grid-template-columns: 1fr; }
+              .report-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+              h1 { font-size: 26px; }
+            }
+          </style>
+        </head>
+        <body>
+          <main class="report">
+            <section class="hero">
+              <h1>Relatório de vistoria operacional</h1>
+              <div class="meta">
+                <div><span>Loja avaliada</span><strong>${escapeHtml(source.store)}</strong></div>
+                <div><span>Responsável</span><strong>${escapeHtml(source.inspector || "Não informado")}</strong></div>
+                <div><span>Data</span><strong>${escapeHtml(formatDate(source.date))}</strong></div>
+              </div>
+              <div class="summary">
+                <div class="critical"><span>Críticos</span><strong>${counts.critical}</strong></div>
+                <div class="attention"><span>Atenção</span><strong>${counts.attention}</strong></div>
+                <div class="success"><span>Sucessos</span><strong>${counts.success}</strong></div>
+                <div class="progress"><span>Preenchido</span><strong>${Math.round((counts.filled / pointIds.length) * 100)}%</strong></div>
+              </div>
+            </section>
+            <div class="print-row"><button type="button" onclick="window.print()">Imprimir / salvar PDF</button></div>
+            ${reportSections}
+            ${sellerReport}
+          </main>
+        </body>
+        </html>`;
+
+      openHtmlDocument(html, `relatorio-${slugify(source.store)}-${source.date || "sem-data"}.html`, "O navegador bloqueou a nova aba. Baixei o relatório em HTML para você abrir e salvar em PDF.");
+    }
+
+    function openHtmlDocument(html, filename, blockedMessage) {
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const reportWindow = window.open(url, "_blank");
+      if (!reportWindow) {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        alert(blockedMessage);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        return;
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+
+    function generatePhotosReport() {
+      saveState();
+      const photos = SECTIONS.flatMap(section => section.points.flatMap((point, index) => {
+        const id = `${section.id}-${index}`;
+        const item = state.points[id] || {};
+        const label = customPointTitle(id, point);
+        return (item.photos || []).map((photo, photoIndex) => ({
+          section: section.title,
+          point: label,
+          note: item.note || "",
+          data: photo.data,
+          number: photoIndex + 1
+        }));
+      }));
+
+      if (!photos.length) {
+        alert("Ainda não há fotos neste checklist.");
+        return;
+      }
+
+      const photoCards = photos.map(photo => `
+        <article class="photo-card">
+          <div class="photo-meta">
+            <strong>${escapeHtml(photo.point)}</strong>
+            <span>${escapeHtml(photo.section)} · Foto ${photo.number}</span>
+            ${photo.note ? `<p>${escapeHtml(photo.note)}</p>` : ""}
+          </div>
+          <img src="${photo.data}" alt="Foto de ${escapeAttr(photo.point)}">
+        </article>
+      `).join("");
+
+      const html = `<!doctype html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Fotos da vistoria</title>
+          <style>
+            :root { font-family: Inter, "Segoe UI", Arial, sans-serif; color: #17212b; }
+            body { margin: 0; background: #f4f6f8; }
+            .photos-report { width: min(1180px, 100%); margin: 0 auto; padding: 24px; }
+            .hero, .photo-card { background: #fff; border: 1px solid #dfe5ec; border-radius: 8px; box-shadow: 0 10px 24px rgba(20, 31, 43, .07); }
+            .hero { padding: 22px; margin-bottom: 16px; }
+            h1 { margin: 0; font-size: 30px; letter-spacing: 0; }
+            .hero p { margin: 8px 0 0; color: #5f6b7a; }
+            .print-row { display: flex; justify-content: flex-end; margin: 16px 0; }
+            button { min-height: 46px; padding: 0 18px; border: 0; border-radius: 8px; background: #195b63; color: #fff; font-weight: 800; cursor: pointer; }
+            .photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+            .photo-card { overflow: hidden; break-inside: avoid; }
+            .photo-meta { padding: 14px 14px 10px; border-bottom: 1px solid #e3e9ef; }
+            .photo-meta strong, .photo-meta span { display: block; }
+            .photo-meta span { margin-top: 4px; color: #657181; font-size: 13px; }
+            .photo-meta p { margin: 8px 0 0; color: #334155; line-height: 1.45; white-space: pre-wrap; }
+            .photo-card img { display: block; width: 100%; height: auto; background: #fff; }
+            @media print {
+              body { background: #fff; }
+              .photos-report { padding: 0; width: 100%; }
+              .hero, .photo-card { box-shadow: none; border-color: #cfd6de; }
+              .print-row { display: none; }
+              .photo-grid { grid-template-columns: 1fr; gap: 12px; }
+            }
+            @media (max-width: 760px) {
+              .photos-report { padding: 14px; }
+              .photo-grid { grid-template-columns: 1fr; }
+              h1 { font-size: 25px; }
+            }
+          </style>
+        </head>
+        <body>
+          <main class="photos-report">
+            <section class="hero">
+              <h1>Fotos da vistoria</h1>
+              <p>${escapeHtml(state.store)} · ${escapeHtml(formatDate(state.date))} · ${photos.length} foto(s)</p>
+            </section>
+            <div class="print-row"><button type="button" onclick="window.print()">Imprimir / salvar PDF</button></div>
+            <section class="photo-grid">${photoCards}</section>
+          </main>
+        </body>
+        </html>`;
+
+      openHtmlDocument(html, `fotos-${slugify(state.store)}-${state.date || "sem-data"}.html`, "O navegador bloqueou a nova aba. Baixei o relatório de fotos em HTML para você abrir e salvar em PDF.");
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function resizeImage(file, maxSide, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function formatDate(value) {
+      if (!value) return "Não informada";
+      const [year, month, day] = value.split("-");
+      return `${day}/${month}/${year}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value === undefined || value === null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/\n/g, " ");
+    }
+
+    function slugify(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "checklist";
+    }
+
+    init();
+  </script>
+</body>
+</html>
